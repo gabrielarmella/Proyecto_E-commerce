@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getProducts } from "../api/products.js";
+import { useCart } from "../context/CartContext.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
 
 function ProductsPage() {
     const [products, setProducts] = useState([]);
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [addingId, setAddingId] = useState(null);
+    const navigate = useNavigate();
+    const { addItem, loading: cartLoading, error: cartError } = useCart();
+    const { user } = useAuth();
 
     const loadProducts = async () => {
         try {
@@ -28,6 +36,23 @@ function ProductsPage() {
         loadProducts();
     };
 
+    const handleAddToCart = async (productId) => {
+        setMessage("");
+        setAddingId(productId);
+        const res = await addItem(productId, 1);
+        setAddingId(null);
+
+        if (res?.needsAuth) {
+            navigate("/login");
+            return;
+        }
+        if (res?.success) {
+            setMessage("Producto agregado al carrito.");
+        } else if (res?.message) {
+            setMessage(res.message);
+        }
+    };
+
     return (
         <div style={{ padding: "1.5rem" }}>
             <h1>Productos</h1>
@@ -45,6 +70,13 @@ function ProductsPage() {
                 </button>
             </form>
 
+            {message && (
+                <p style={{ color: "green", marginBottom: "0.5rem" }}>{message}</p>
+            )}
+            {cartError && (
+                <p style={{ color: "red", marginBottom: "0.5rem" }}>{cartError}</p>
+            )}
+
             {loading && <p>Cargando productos...</p>}
 
             {!loading && products.length === 0 && <p>No se encontraron productos.</p>}
@@ -57,7 +89,7 @@ function ProductsPage() {
             >
                 {products.map((p) => (
                     <div
-                        key={p.id}
+                        key={p._id || p.id}
                         style={{
                             border: "1px solid #ddd",
                             borderRadius: "8px",
@@ -72,6 +104,13 @@ function ProductsPage() {
                         <p style={{ fontSize: "0.9rem", color: "#555"}}>
                             {p.description?.slice(0, 80)}...
                         </p>
+                        <button
+                            style={{ marginTop: "0.5rem" }}
+                            onClick={() => handleAddToCart(p._id || p.id)}
+                            disabled={cartLoading && addingId === (p._id || p.id)}
+                        >
+                            {user ? "Agregar al carrito" : "Inicia sesión para comprar"}
+                        </button>
                     </div>
                 ))}
             </div>

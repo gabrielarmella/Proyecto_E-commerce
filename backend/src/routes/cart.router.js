@@ -43,7 +43,7 @@ router.post("/add", authMiddleware, async (req, res) => {
         if (existingItem) {
             existingItem.quantity += quantity;
         } else {
-            cart.items.push({ product: product._Id, quantity });
+            cart.items.push({ product: product._id, quantity });
         }
 
         await cart.save();
