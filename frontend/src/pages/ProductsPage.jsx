@@ -5,117 +5,156 @@ import { useCart } from "../context/CartContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
 function ProductsPage() {
-    const [products, setProducts] = useState([]);
-    const [search, setSearch] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState("");
-    const [addingId, setAddingId] = useState(null);
-    const navigate = useNavigate();
-    const { addItem, loading: cartLoading, error: cartError } = useCart();
-    const { user } = useAuth();
+  const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [addingId, setAddingId] = useState(null);
 
-    const loadProducts = async () => {
-        try {
-            setLoading(true);
-            const data = await getProducts({ search, page: 1, limit: 20 });
-            setProducts(data.data);
-        } catch (err) {
-            console.error("Error al cargar productos:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const navigate = useNavigate();
+  const { addItem, loading: cartLoading, error: cartError } = useCart();
+  const { user } = useAuth();
 
-    useEffect(() => {
-        loadProducts();
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      const data = await getProducts({ search, page: 1, limit: 20 });
+      setProducts(data.data);
+    } catch (err) {
+      console.error("Error al cargar productos:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    }, []);
+  useEffect(() => {
+    loadProducts();
+  }, []);
 
-    const handleSearch = (e) => {
-        e.preventDefault();
-        loadProducts();
-    };
+  const handleSearch = (e) => {
+    e.preventDefault();
+    loadProducts();
+  };
 
-    const handleAddToCart = async (productId) => {
-        setMessage("");
-        setAddingId(productId);
-        const res = await addItem(productId, 1);
-        setAddingId(null);
+  const handleAddToCart = async (productId) => {
+    setMessage("");
+    setAddingId(productId);
 
-        if (res?.needsAuth) {
-            navigate("/login");
-            return;
-        }
-        if (res?.success) {
-            setMessage("Producto agregado al carrito.");
-        } else if (res?.message) {
-            setMessage(res.message);
-        }
-    };
+    const res = await addItem(productId, 1);
 
-    return (
-        <div style={{ padding: "1.5rem" }}>
+    setAddingId(null);
+
+    if (res?.needsAuth) {
+      navigate("/login");
+      return;
+    }
+    if (res?.success) {
+      setMessage("✅ Producto agregado al carrito.");
+    } else if (res?.message) {
+      setMessage(res.message);
+    }
+  };
+
+  return (
+    <div className="page">
+      <div className="page-inner">
+        {/* Header */}
+        <header className="page-header">
+          <div>
             <h1>Productos</h1>
+            <p>Explorá el catálogo disponible en la tienda.</p>
+          </div>
 
-            <form onSubmit={handleSearch} style={{ marginBottom: "1rem" }}>
-                <input
-                    type="text"
-                    placeholder="Buscar productos..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    style={{ padding: "0.5rem", marginRight: "0.5rem" }}
-                />
-                <button type="submit" style={{ padding: "0.5rem 1rem" }}>
-                    Buscar
-                </button>
-            </form>
+          <form className="products-search" onSubmit={handleSearch}>
+            <input
+              type="text"
+              placeholder="Buscar productos..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <button type="submit">Buscar</button>
+          </form>
+        </header>
 
-            {message && (
-                <p style={{ color: "green", marginBottom: "0.5rem" }}>{message}</p>
-            )}
-            {cartError && (
-                <p style={{ color: "red", marginBottom: "0.5rem" }}>{cartError}</p>
-            )}
+        {/* Mensajes */}
+        {message && (
+          <p className="page-message" style={{ color: "green" }}>
+            {message}
+          </p>
+        )}
+        {cartError && (
+          <p className="page-message" style={{ color: "red" }}>
+            {cartError}
+          </p>
+        )}
 
-            {loading && <p>Cargando productos...</p>}
+        {loading && <p className="page-message">Cargando productos...</p>}
 
-            {!loading && products.length === 0 && <p>No se encontraron productos.</p>}
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-                    gap: "1rem",
-                }}
-            >
-                {products.map((p) => (
-                    <div
-                        key={p._id || p.id}
-                        style={{
-                            border: "1px solid #ddd",
-                            borderRadius: "8px",
-                            padding: "1rem",
-                            textAlign: "center",
-                        }}
-                    >
-                        <h3>{p.name}</h3>
-                        <p>
-                            <strong>Precio:</strong> ${p.price.toFixed(2)}
-                        </p>
-                        <p style={{ fontSize: "0.9rem", color: "#555"}}>
-                            {p.description?.slice(0, 80)}...
-                        </p>
-                        <button
-                            style={{ marginTop: "0.5rem" }}
-                            onClick={() => handleAddToCart(p._id || p.id)}
-                            disabled={cartLoading && addingId === (p._id || p.id)}
-                        >
-                            {user ? "Agregar al carrito" : "Inicia sesión para comprar"}
-                        </button>
+        {!loading && products.length === 0 && (
+          <p className="page-message">No se encontraron productos.</p>
+        )}
+
+        {/* Grid de productos */}
+        <div className="products-grid">
+          {products.map((p) => {
+            const id = p._id || p.id;
+            return (
+              <article key={id} className="product-card">
+                {/*Imagen del producto*/}
+                {p.images?.length > 0 && (
+                  <div className="product-image-wrapper">
+                    <img
+                      src={p.images[0]}
+                      alt={p.name}
+                      className="product-image"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                      }}
+                    />
+                  </div>
+                )}
+
+                <div className="product-content">
+                  <h3 className="product-title">{p.name}</h3>
+
+                  {p.category && (
+                    <span className="product-badge">{p.category}</span>
+                  )}
+
+                  <p className="product-description">
+                    {p.description
+                      ? p.description.slice(0, 80) +
+                        (p.description.length > 80 ? "..." : "")
+                      : "Sin descripción."}
+                  </p>
+
+                  <div className="product-footer">
+                    <div className="product-price">
+                      <span>${p.price.toFixed(2)}</span>
+                      {p.stock !== undefined && (
+                        <small>{p.stock} en stock</small>
+                      )}
                     </div>
-                ))}
-            </div>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => handleAddToCart(id)}
+                      disabled={cartLoading && addingId === id}
+                    >
+                      {cartLoading && addingId === id
+                        ? "Agregando..."
+                        : user
+                        ? "Agregar al carrito"
+                        : "Inicia sesión para comprar"}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
         </div>
-    );
+      </div>
+    </div>
+  );
 }
 
 export default ProductsPage;
