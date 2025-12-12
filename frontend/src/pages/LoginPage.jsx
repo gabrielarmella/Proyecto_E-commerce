@@ -21,42 +21,83 @@ function LoginPage() {
     };
 
     return (
-        <div style={{ maxWidth: "400px", margin: "2rem auto"}}>
-            <h2>Iniciar Sesión</h2>
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: "1rem" }}>
-                    <label>Email:</label>
-                    <input
-                        name="email"
-                        type="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        required
-                        style={{ width: "100%", padding: "0.5rem" }}
-                    />
-                </div>
-                <div style={{ marginBottom: "1rem" }}>
-                    <label>Contraseña:</label>
-                    <input
-                        name="password"
-                        type="password"
-                        value={form.password}
-                        onChange={handleChange}
-                        required
-                        style={{ width: "100%", padding: "0.5rem" }}
-                    />
-                </div>
-                {error && <p style={{ color: "red" }}>{error}</p>}
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h2 className="text-2xl font-semibold text-slate-900 mb-1">
+          Iniciar sesión
+        </h2>
+        <p className="text-sm text-slate-600 mb-6">
+          Ingresá tus datos para acceder a tu cuenta.
+        </p>
 
-                <button type="submit" disabled={submitting}>
-                    {submitting ? "Ingresando..." : "Ingresar"}
-                </button>
-            </form>
-            <p style={{ marginTop: "1rem", fontSize: "0.9rem"}}>
-                ¿No tenes cuenta? <Link to ="/register">Registrate acá</Link>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email */}
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-slate-700 mb-1"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              required
+              className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          {/* Contraseña */}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-slate-700 mb-1"
+            >
+              Contraseña
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              required
+              className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          {/* Error */}
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+              {error}
             </p>
-        </div>
-    );
+          )}
+
+          {/* Botón */}
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {submitting ? "Ingresando..." : "Ingresar"}
+          </button>
+        </form>
+
+        <p className="mt-4 text-xs text-slate-600">
+          ¿No tenés cuenta?{" "}
+          <Link
+            to="/register"
+            className="font-medium text-indigo-600 hover:text-indigo-700"
+          >
+            Registrate acá
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
 }
 
 export default LoginPage;

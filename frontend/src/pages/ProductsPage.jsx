@@ -56,57 +56,78 @@ function ProductsPage() {
   };
 
   return (
-    <div className="page">
-      <div className="page-inner">
+    <div className="min-h-screen bg-slate-50 px-4 py-8">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <header className="page-header">
+        <header className="flex flex-col gap-4 items-start justify-between md:flex-row md:items-center mb-6">
           <div>
-            <h1>Productos</h1>
-            <p>Explorá el catálogo disponible en la tienda.</p>
+            <h1 className="text-2xl md:text-3xl font-semibold text-slate-900">
+              Productos
+            </h1>
+            <p className="text-slate-600 mt-1">
+              Explorá el catálogo disponible en la tienda.
+            </p>
           </div>
 
-          <form className="products-search" onSubmit={handleSearch}>
+          <form
+            className="w-full md:w-auto flex gap-2"
+            onSubmit={handleSearch}
+          >
             <input
               type="text"
               placeholder="Buscar productos..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              className="w-full md:w-64 rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white"
             />
-            <button type="submit">Buscar</button>
+            <button
+              type="submit"
+              className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+            >
+              Buscar
+            </button>
           </form>
         </header>
 
         {/* Mensajes */}
         {message && (
-          <p className="page-message" style={{ color: "green" }}>
+          <p className="mb-3 inline-flex items-center rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
             {message}
           </p>
         )}
+
         {cartError && (
-          <p className="page-message" style={{ color: "red" }}>
+          <p className="mb-3 inline-flex items-center rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
             {cartError}
           </p>
         )}
 
-        {loading && <p className="page-message">Cargando productos...</p>}
+        {loading && (
+          <p className="text-sm text-slate-600 mb-4">Cargando productos...</p>
+        )}
 
         {!loading && products.length === 0 && (
-          <p className="page-message">No se encontraron productos.</p>
+          <p className="text-sm text-slate-600 mb-4">
+            No se encontraron productos.
+          </p>
         )}
 
         {/* Grid de productos */}
-        <div className="products-grid">
+        <div className="mt-6 grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {products.map((p) => {
             const id = p._id || p.id;
             return (
-              <article key={id} className="product-card">
-                {/*Imagen del producto*/}
+              <article
+                key={id}
+                className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col"
+              >
+                {/* Imagen del producto */}
                 {p.images?.length > 0 && (
-                  <div className="product-image-wrapper">
+                  <div className="aspect-[4/3] bg-slate-100">
                     <img
                       src={p.images[0]}
                       alt={p.name}
-                      className="product-image"
+                      className="w-full h-full object-cover"
                       onError={(e) => {
                         e.target.style.display = "none";
                       }}
@@ -114,29 +135,40 @@ function ProductsPage() {
                   </div>
                 )}
 
-                <div className="product-content">
-                  <h3 className="product-title">{p.name}</h3>
+                <div className="p-4 flex flex-col flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-base font-semibold text-slate-900">
+                      {p.name}
+                    </h3>
 
-                  {p.category && (
-                    <span className="product-badge">{p.category}</span>
-                  )}
+                    {p.category && (
+                      <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-0.5 text-[11px] font-medium text-indigo-700">
+                        {p.category}
+                      </span>
+                    )}
+                  </div>
 
-                  <p className="product-description">
+                  <p className="mt-2 text-sm text-slate-600 flex-1">
                     {p.description
                       ? p.description.slice(0, 80) +
                         (p.description.length > 80 ? "..." : "")
                       : "Sin descripción."}
                   </p>
 
-                  <div className="product-footer">
-                    <div className="product-price">
-                      <span>${p.price.toFixed(2)}</span>
+                  <div className="mt-4 flex items-end justify-between gap-3">
+                    <div className="flex flex-col">
+                      <span className="text-lg font-semibold text-slate-900">
+                        ${p.price.toFixed(2)}
+                      </span>
                       {p.stock !== undefined && (
-                        <small>{p.stock} en stock</small>
+                        <small className="text-[11px] text-slate-500">
+                          {p.stock} en stock
+                        </small>
                       )}
                     </div>
+
                     <button
-                      className="btn-secondary"
+                      className="inline-flex items-center justify-center rounded-md border border-indigo-600 px-3 py-2 text-xs sm:text-sm font-medium text-indigo-600 hover:bg-indigo-50 disabled:opacity-60 disabled:cursor-not-allowed"
                       onClick={() => handleAddToCart(id)}
                       disabled={cartLoading && addingId === id}
                     >

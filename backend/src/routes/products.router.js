@@ -10,18 +10,6 @@ const router = Router();
  *   description: Gestión de productos del e-commerce
  */
 
-
-// GET /api/products - Obtener todos los productos
-router.get("/", async (req, res) => {
-    try {
-        const products = await Product.find();
-        res.json({success: true, data: products});
-    } catch (error) {
-        res.status(500).json({success: false, message: "Error al obtener los productos"});
-    };
-    });
-
-
     // GET /api/products/:id - Obtener un producto por ID
 router.get("/:id", async (req, res) => {
     try {

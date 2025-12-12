@@ -12,42 +12,78 @@ function App() {
   const { user, loading, logout } = useAuth();
   const { itemCount } = useCart();
 
-  if (loading) return <p style={{ padding: "1rem" }}>Cargando sesión...</p>;
+  if (loading) {
+    return (
+      <p className="px-4 py-8 text-center text-slate-600">
+        Cargando sesión...
+      </p>
+    );
+  }
 
   return (
-    <div>
-      <header
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "0.75rem 1.5rem",
-          borderBottom: "1px solid #ddd",
-          marginBottom: "1rem",
-        }}
-      >
-        <Link to="/" style={{ textDecoration: "none" }}>
-          <h2>E-commerce</h2>
-        </Link>
-        <nav style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-          {user ? (
-            <>
-              <span style={{ fontSize: "0.9rem" }}>
-                Hola, <strong>{user.name}</strong>
-              </span>
-              <Link to="/cart">Carrito ({itemCount})</Link>
-              <button onClick={logout}>Cerrar sesión</button>
-              <Link to="/orders">Mis órdenes</Link>
-            </>
-          ) : (
-            <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Registro</Link>
-            </>
-          )}
-        </nav>
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* NAVBAR */}
+      <header className="bg-white border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-lg font-semibold text-slate-900">
+              E-commerce
+            </span>
+          </Link>
+
+          <nav className="flex items-center gap-3 text-sm">
+            {user ? (
+              <>
+                <span className="hidden sm:inline text-slate-600">
+                  Hola, <span className="font-semibold">{user.name}</span>
+                </span>
+
+                <Link
+                  to="/cart"
+                  className="inline-flex items-center rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Carrito
+                  <span className="ml-1 inline-flex items-center justify-center rounded-full bg-indigo-600 px-2 py-0.5 text-xs font-semibold text-white">
+                    {itemCount}
+                  </span>
+                </Link>
+
+                <Link
+                  to="/orders"
+                  className="hidden sm:inline text-slate-700 hover:text-indigo-600"
+                >
+                  Mis órdenes
+                </Link>
+
+                <button
+                  onClick={logout}
+                  className="inline-flex items-center rounded-md bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-200"
+                >
+                  Cerrar sesión
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center rounded-md border border-slate-300 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700"
+                >
+                  Registro
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
       </header>
-      <main>
+
+      {/* CONTENIDO */}
+      <main className="flex-1">
         <Routes>
           <Route path="/" element={<ProductsPage />} />
           <Route path="/cart" element={<CartPage />} />

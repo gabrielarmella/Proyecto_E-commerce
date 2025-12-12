@@ -38,7 +38,7 @@ function CheckoutPage() {
   if (!user) return null; // mientras redirige
 
   if (cartLoading || !cart) {
-    return <p style={{ padding: "1rem" }}>Cargando carrito...</p>;
+    return <p className="px-4 py-8 text-center text-slate-600">Cargando carrito...</p>;
   }
 
   const total = cart.items.reduce(
@@ -76,133 +76,203 @@ function CheckoutPage() {
     }
   };
 
-  return (
-  <div className="checkout-page">
-    <div className="checkout-card">
-      <div className="checkout-header">
-        <h1>Checkout</h1>
-        <p>Revisá tu pedido y completá los datos para finalizar la compra.</p>
-      </div>
+   return (
+    <div className="min-h-screen bg-slate-50 px-4 py-8">
+      <div className="max-w-5xl mx-auto">
+        <header className="mb-6">
+          <h1 className="text-2xl md:text-3xl font-semibold text-slate-900">
+            Checkout
+          </h1>
+          <p className="text-slate-600 mt-1">
+            Revisá tu pedido y completá los datos para finalizar la compra.
+          </p>
+        </header>
 
-      {/* GRID: Resumen + Formulario */}
-      <div className="checkout-grid">
-        {/* Resumen de compra */}
-        <div className="checkout-summary">
-          <h3>Resumen de la compra</h3>
-          <ul className="summary-list">
-            {cart.items.map((item) => (
-              <li key={item.product._id} className="summary-item">
-                <div>
-                  <p className="summary-product-name">
-                    {item.product.name}
+        {error && (
+          <p className="mb-4 inline-flex items-center rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+            {error}
+          </p>
+        )}
+
+        {/* GRID: Resumen + Formulario */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Resumen de la compra */}
+          <section className="w-full lg:w-72 bg-white rounded-xl shadow-sm border border-slate-200 p-5 h-fit">
+            <h3 className="text-lg font-semibold text-slate-900 mb-3">
+              Resumen de la compra
+            </h3>
+
+            <ul className="space-y-3 mb-4">
+              {cart.items.map((item) => (
+                <li
+                  key={item.product._id}
+                  className="flex items-start justify-between gap-3 border-b border-slate-100 pb-2 last:border-0 last:pb-0"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-slate-900">
+                      {item.product.name}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Cantidad: {item.quantity}
+                    </p>
+                  </div>
+                  <p className="text-sm font-semibold text-slate-900">
+                    $
+                    {(item.product.price * item.quantity).toFixed(2)}
                   </p>
-                  <p className="summary-product-detail">
-                    Cantidad: {item.quantity}
-                  </p>
+                </li>
+              ))}
+            </ul>
+
+            <div className="flex items-center justify-between border-t border-slate-200 pt-3 mt-2">
+              <span className="text-sm font-semibold text-slate-900">
+                Total
+              </span>
+              <span className="text-lg font-semibold text-slate-900">
+                $ {total.toFixed(2)}
+              </span>
+            </div>
+          </section>
+
+          {/* Formulario de datos */}
+          <section className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Dirección de envío */}
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 mb-3">
+                  Dirección de envío
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Calle y número
+                    </label>
+                    <input
+                      type="text"
+                      name="street"
+                      value={shippingAddress.street}
+                      onChange={handleAddressChange}
+                      required
+                      className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Ciudad
+                    </label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={shippingAddress.city}
+                      onChange={handleAddressChange}
+                      required
+                      className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Provincia
+                    </label>
+                    <input
+                      type="text"
+                      name="province"
+                      value={shippingAddress.province}
+                      onChange={handleAddressChange}
+                      required
+                      className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      Código postal
+                    </label>
+                    <input
+                      type="text"
+                      name="zip"
+                      value={shippingAddress.zip}
+                      onChange={handleAddressChange}
+                      required
+                      className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      País
+                    </label>
+                    <input
+                      type="text"
+                      name="country"
+                      value={shippingAddress.country}
+                      onChange={handleAddressChange}
+                      required
+                      className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
                 </div>
-                <p className="summary-product-price">
-                  $ {(item.product.price * item.quantity).toFixed(2)}
-                </p>
-              </li>
-            ))}
-          </ul>
-          <div className="summary-total">
-            <span>Total</span>
-            <span>$ {total.toFixed(2)}</span>
-          </div>
-        </div>
-
-        {/* Formulario de envío y pago */}
-        <div className="checkout-form">
-          <form onSubmit={handleSubmit}>
-            <h3>Datos de envío</h3>
-
-            <div className="form-row">
-              <label>Calle y número</label>
-              <input
-                type="text"
-                name="street"
-                value={shippingAddress.street}
-                onChange={handleAddressChange}
-                required
-              />
-            </div>
-
-            <div className="form-grid-2">
-              <div className="form-row">
-                <label>Ciudad</label>
-                <input
-                  type="text"
-                  name="city"
-                  value={shippingAddress.city}
-                  onChange={handleAddressChange}
-                  required
-                />
               </div>
 
-              <div className="form-row">
-                <label>Provincia</label>
-                <input
-                  type="text"
-                  name="province"
-                  value={shippingAddress.province}
-                  onChange={handleAddressChange}
-                  required
-                />
+              {/* Método de pago */}
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900 mb-3">
+                  Método de pago
+                </h2>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-sm text-slate-800">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="mercado_pago"
+                      checked={paymentMethod === "mercado_pago"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="h-4 w-4 text-indigo-600 border-slate-300 focus:ring-indigo-500"
+                    />
+                    Mercado Pago
+                  </label>
+
+                  <label className="flex items-center gap-2 text-sm text-slate-800">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="transferencia"
+                      checked={paymentMethod === "transferencia"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="h-4 w-4 text-indigo-600 border-slate-300 focus:ring-indigo-500"
+                    />
+                    Transferencia bancaria
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-slate-800">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="transferencia"
+                      checked={paymentMethod === "tarjeta_credito"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="h-4 w-4 text-indigo-600 border-slate-300 focus:ring-indigo-500"
+                    />
+                    Tarjeta de crédito
+                  </label>
+                </div>
               </div>
-            </div>
 
-            <div className="form-grid-2">
-              <div className="form-row">
-                <label>Código postal</label>
-                <input
-                  type="text"
-                  name="zip"
-                  value={shippingAddress.zip}
-                  onChange={handleAddressChange}
-                  required
-                />
+              {/* Botón */}
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {submitting ? "Procesando..." : "Finalizar compra"}
+                </button>
               </div>
-
-              <div className="form-row">
-                <label>País</label>
-                <input
-                  type="text"
-                  name="country"
-                  value={shippingAddress.country}
-                  onChange={handleAddressChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <h3 style={{ marginTop: "1rem" }}>Método de pago</h3>
-            <div className="form-row">
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              >
-                <option value="mercado_pago">Mercado Pago</option>
-                <option value="transferencia">Transferencia</option>
-                <option value="tarjeta">Tarjeta</option>
-              </select>
-            </div>
-
-            {error && <p className="form-error">{error}</p>}
-
-            <button type="submit" disabled={submitting} className="btn-primary">
-              {submitting ? "Procesando..." : "Confirmar compra"}
-            </button>
-
-            <p className="checkout-note">
-              Al confirmar la compra aceptás los términos y condiciones del
-              servicio.
-            </p>
-          </form>
+            </form>
+          </section>
         </div>
       </div>
     </div>
-  </div>
   );
 }
 
