@@ -4,6 +4,8 @@ import { getProducts } from "../api/products.js";
 import { useCart } from "../context/CartContext.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
 function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
@@ -123,19 +125,19 @@ function ProductsPage() {
               >
                 {/* Imagen del producto */}
                 {p.images?.length > 0 && (
-                  <div className="aspect-[4/3] bg-slate-100">
+                  <div className="w-full h-48 bg-slate-100 rounded-t-xl overflow-hidden flex items-center justify-center">
                     <img
-                      src={p.images[0]}
+                      src={`${API_URL}${p.images[0]}`}
                       alt={p.name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.style.display = "none";
+                        e.currentTarget.src = "https://via.placeholder.com/600x400?text=Sin+imagen";
                       }}
                     />
                   </div>
                 )}
 
-                <div className="p-4 flex flex-col flex-1">
+                <div className="p-4 flex flex-col gap-2">
                   <div className="flex items-start justify-between gap-2">
                     <h3 className="text-base font-semibold text-slate-900">
                       {p.name}

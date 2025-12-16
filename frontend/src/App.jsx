@@ -5,12 +5,20 @@ import RegisterPage from "./pages/RegisterPage.jsx";
 import CartPage from "./pages/CartPage.jsx";
 import CheckoutPage from "./pages/CheckoutPage.jsx";
 import OrdersPage from "./pages/OrdersPage.jsx";
+
+import AdminProductsPage from "./pages/AdminProductsPage.jsx";
+import AdminEditProductPage from "./pages/AdminEditProductPage.jsx";
+import AdminCreateProductPage from "./pages/AdminCreateProductPage.jsx";
+import AdminRoute from "./components/AdminRoute.jsx";
+
 import { useAuth } from "./context/AuthContext.jsx";
 import { useCart } from "./context/CartContext.jsx";
 
 function App() {
   const { user, loading, logout } = useAuth();
   const { itemCount } = useCart();
+
+  const isAdmin = user?.role === "admin" || user?.isAdmin === true;
 
   if (loading) {
     return (
@@ -54,6 +62,15 @@ function App() {
                 >
                   Mis órdenes
                 </Link>
+                {/* Admin Link */}
+                {isAdmin && (
+                  <Link
+                    to="/admin/products"
+                    className="hidden sm:inline text-slate-700 hover:text-indigo-600"
+                  >
+                    Admin
+                  </Link>
+                  )}
 
                 <button
                   onClick={logout}
@@ -91,6 +108,22 @@ function App() {
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          {/* Admin*/}
+          <Route path="/admin/products" element={
+            <AdminRoute> 
+              <AdminProductsPage /> 
+            </AdminRoute>} 
+          />
+          <Route path="/admin/products/new" element={
+            <AdminRoute>
+              <AdminCreateProductPage />
+            </AdminRoute>}
+          />
+          <Route path="/admin/products/:id/edit" element={
+          <AdminRoute>
+            <AdminEditProductPage />
+          </AdminRoute>} 
+          />
         </Routes>
       </main>
     </div>

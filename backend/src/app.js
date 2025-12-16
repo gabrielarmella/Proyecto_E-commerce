@@ -3,6 +3,10 @@ import cors from "cors";
 import dotenv from "dotenv";
 import {connectDB} from "./config/db.js";
 
+import { fileURLToPath } from "url";
+import uploadRouter from "./routes/upload.router.js";
+import path from "path";
+
 //Swagger
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.config.js";
@@ -16,6 +20,9 @@ import ordersRouter from "./routes/orders.router.js";
 dotenv.config();
 
 const app = express ();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 //Middlewares
 app.use(cors());
@@ -37,6 +44,10 @@ app.use("/api/products", productsRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/cart", cartRouter);
+
+//Imagenes
+app.use("/api/upload", uploadRouter);
+app.use("/uploads", express.static(path.join(__dirname, ".." + "uploads")));
 
 const PORT = process.env.PORT || 3000;
 

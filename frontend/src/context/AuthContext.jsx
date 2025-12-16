@@ -1,6 +1,5 @@
-import { createContext, use, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { loginRequest, registerRequest, getMeRequest } from "../api/auth.js";
-
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -17,11 +16,17 @@ export const AuthProvider = ({ children }) => {
                     setLoading(false);
                     return;
                 }
-                const res = await getMeRequest();
+                const me = await getMeRequest();
+                //Soporta que la respuesta sea tipo:
+                //1. { success, data: user }
+                //2. {user}
+                //3. user directo
+                setUser(me.data || me.user || me);
                 setUser(res.data);
             } catch (err) {
                 console.log(err);
                 localStorage.removeItem("token");
+                setUser(null);
             } finally {
                 setLoading(false);
             }

@@ -1,4 +1,4 @@
-import apiClient from "./client";
+import apiClient from "./client.js";
 
 export const getProducts = async (params = {}) => {
     const res = await apiClient.get("/api/products", { params });

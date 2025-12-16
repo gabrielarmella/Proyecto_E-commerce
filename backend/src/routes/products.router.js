@@ -3,6 +3,44 @@ import Product from "../models/product.model.js";
 import { authMiddleware, adminOnly } from "../middlewares/auth.middleware.js";
 
 const router = Router();
+
+//GET /api/products/admin/all - Solo admin - listar todos los productos incluyendo activos e inactivos
+router.get("/admin/all", authMiddleware, adminOnly, async (req, res) => {
+    try {
+        const {page = 1, limit = 20, search} = req.query;
+
+        const filter = {};
+        if (search) {
+            filter.$or = [
+                {name: {$regex: search, $options: "i"}},
+                {category: {$regex: search, $options: "i"}},
+                {brand: {$regex: search, $options: "i"}},
+            ];
+        }
+
+        const pageNm = Number(page) || 1;
+        const limitNum = Number(limit) || 20;
+        const skip = (pageNm - 1) * limitNum;
+
+        const [products, total] = await Promise.all([
+            Product.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limitNum),
+            Product.countDocuments(filter),
+        ]);
+        res.json({
+            success: true,
+            data: products,
+            pagination: {
+                total,
+                page: pageNum,
+                limit: limitNum,
+                pages: Math.ceil(total / limitNum),
+            },
+        });
+    } catch (error) {
+        console.error(err);
+        res.status(500).json({success: false, message: "Error al obtener los productos (admin)"});
+    }
+});
 /**
  * @swagger
  * tags:
@@ -170,43 +208,30 @@ router.get("/", async (req, res) => {
  *       403:
  *         description: Solo administradores pueden crear productos
  */
-//POST /api/products - Solo admin
-router.post("/", authMiddleware, adminOnly, async (req, res) => {
-    try {
-        const {
-            name,
-            price,
-            description,
-            stock,
-            category,
-            brand, 
-            images,
-            isFeatured,
-            tags,
-        } = req.body;
-        if (!name || price == null) {
-            return res
-            .status(400)
-            .json({success: false, message: "Faltan campos obligatorios: name, price"});
-        }
-        const newProduct = await Product.create({
-            name,
-            price,
-            description,
-            stock,
-            category,
-            brand,
-            images,
-            isFeatured,
-            tags,
-        });
-        res.status(201).json({success: true, data: newProduct});
-    } catch (error) {
-        res.status(500).json({success: false, message: "Error al crear el producto"});
+//GET /api/products/:id - Público - detalle de producto
+router.get("/:id", async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+
+    if (!product || !product.active) {
+      return res.status(404).json({
+        success: false,
+        message: "Producto no encontrado",
+      });
     }
+
+    res.json({ success: true, data: product });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: "ID de producto inválido",
+    });
+  }
 });
 
-// PUT /api/products/:id - Solo admin
+        
+
+// PUT /api/products/:id - Solo admin - crear producto
 router.put("/:id", authMiddleware, adminOnly, async (req, res) => {
     try{
     const allowedFields = [
@@ -238,11 +263,47 @@ router.put("/:id", authMiddleware, adminOnly, async (req, res) => {
     }
     res.json({success: true, data: updatedProduct});
     } catch (error) {
-        console.log(error);
+        console.error("Error en PUT /api/products/:id", error); 
         res.status(400).json({success: false, message: "ID de producto inválido"});
     }   
 });
-
+//POST /api/products - Solo admin - crear producto
+router.post("/", authMiddleware, adminOnly, async (req, res) => {
+    try {
+        const {
+            name,
+            price,
+            description = "",
+            stock,
+            category,
+            brand, 
+            images = [],
+            isFeatured = false,
+            tags = [],
+        } = req.body;
+        if (!name || price == null) {
+            return res
+            .status(400)
+            .json({success: false, message: "Faltan campos obligatorios: name, price"});
+        }
+        const newProduct = await Product.create({
+            name,
+            price,
+            description,
+            stock,
+            category,
+            brand,
+            images,
+            isFeatured,
+            tags,
+            active: true,
+        });
+        res.status(201).json({success: true, data: newProduct});
+    } catch (error) {
+        console.error("Error en POST /api/products:", error);
+        res.status(500).json({success: false, message: "Error al crear el producto"});
+    }
+});
 // DELETE /api/products/:id - Solo admin
 router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
     try {
@@ -260,69 +321,9 @@ router.delete("/:id", authMiddleware, adminOnly, async (req, res) => {
             data: deletedProduct,
         });
     } catch (error) {
-        console.log(error);
+        console.error("Error en DELETE /api/products/:id", error);
         res.status(400).json({success: false, message: "ID de producto inválido"});
     }
-});
-
-//POST /api/products - Crear un nuevo producto
-
-router.post("/", async (req, res) => {
-    try {
-        const {name, price, description, stock, category, active} = req.body;
-
-        if (!name || price == null || stock == null) {
-            return res 
-            .status(400)
-            .json({success: false, message: "Faltan campos obligatorios: name, price, stock"});
-        }
-        const newProduct = await Product.create({
-            name,
-            price,
-            description,
-            stock,
-            category,
-        });
-        res.status(201).json({success: true, data: newProduct});
-    } catch (error) {
-        res.status(500).json({success: false, message: "Error al crear el producto"});
-    }
-});
-
-// PUT /api/products/:id - Actualizar un producto 
-router.put("/:id", async (req, res) => {
-    try {
-        const updatedProduct = await Product.findByIdAndUpdate(
-            req.params.id,
-            req.body,
-            {new: true}// Devuelve el documento actualizado
-        );
-    
-        if (!updatedProduct) {
-            return res.status(404).json({success: false, message: "Producto no encontrado"});
-        }
-        res.json({success: true, data: updatedProduct});
-    } catch (error) {
-        res.status(400).json({success: false, message: "ID de producto inválido"});
-    }
-});
-
-// DELETE /api/products/:id - Eliminar un producto
-router.delete("/:id", async (req, res) => {
-    try {
-        const deletedProduct = await Product.findByIdAndDelete(
-            req.params.id,
-            {active: false},
-            {new: true}
-        );
-
-        if (!deletedProduct) {
-            return res.status(404).json({success: false, message: "Producto no encontrado"});
-        }
-        res.json({success: true, message: "Producto eliminado correctamente", data: deletedProduct});
-    } catch (error) {
-        res.status(400).json({success: false, message: "ID de producto inválido"});
-    }   
 });
 
 
