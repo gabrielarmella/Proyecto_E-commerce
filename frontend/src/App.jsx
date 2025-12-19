@@ -10,6 +10,10 @@ import AdminProductsPage from "./pages/AdminProductsPage.jsx";
 import AdminEditProductPage from "./pages/AdminEditProductPage.jsx";
 import AdminCreateProductPage from "./pages/AdminCreateProductPage.jsx";
 import AdminRoute from "./components/AdminRoute.jsx";
+import OAuthSuccess from "./pages/OAuthSuccess.jsx";
+import SetPasswordPage from "./pages/SetPasswordPage.jsx";
+import PrivateRoute from "./components/PrivateRoute.jsx";
+import GuestRoute from "./components/GuestRoute.jsx";
 
 import { useAuth } from "./context/AuthContext.jsx";
 import { useCart } from "./context/CartContext.jsx";
@@ -104,10 +108,13 @@ function App() {
         <Routes>
           <Route path="/" element={<ProductsPage />} />
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/orders" element={<OrdersPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/checkout" element={<PrivateRoute><CheckoutPage/></PrivateRoute>} />
+          <Route path="/orders" element={<GuestRoute><OrdersPage/></GuestRoute>} />
+          <Route path="/login" element={<GuestRoute><LoginPage/></GuestRoute>} />
+          <Route path="/register" element={<PrivateRoute><RegisterPage/></PrivateRoute>} />
+          <Route path="/set-password" element={<PrivateRoute><SetPasswordPage/></PrivateRoute>} />
+          {/* Google OAuth */}
+          <Route path="/oauth-success" element={<OAuthSuccess />} />
           {/* Admin*/}
           <Route path="/admin/products" element={
             <AdminRoute> 

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import passport from "passport";
 import User from "../models/user.model.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 
@@ -133,9 +134,10 @@ router.post("/login", async (req, res) => {
 
         const user = await User.findOne({ email });
         if (!user) {
-            return res
-            .status(401)
-            .json({ success: false, message: "Credenciales inválidas" });
+            return res.status(401).json({ success: false, message: "Credenciales inválidas" });
+        }
+        if (!user.passwordHash) {
+            return res.status(400).json({ success: false, message: "Esta cuenta fue creada con Google. Por favor, inicia sesión con Google." });
         }
 
         const isMatch = await bcrypt.compare(password, user.passwordHash);
@@ -173,6 +175,24 @@ router.post("/login", async (req, res) => {
         .json({ success: false, message: "Error al iniciar sesión" });
     }
 });
+// GET /api/auth/google - Iniciar sesión con Google
+router.get(
+    "/google",
+    passport.authenticate("google", { scope: ["profile", "email"] })    
+);
+// GET /api/auth/google/callback - Callback de Google
+router.get(
+    "/google/callback",
+    passport.authenticate("google", { session: false, failureRedirect: "/login" }),
+    (req, res) => {
+        const token = jwt.sign(
+            { id: req.user._id, role: req.user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "8h" }
+        );
+        res.redirect(`${process.env.FRONTEND_URL}/oauth-success?token=${token}`);
+    }
+);
 
 //Get /api/auth/me - Obtener datos del usuario autenticado
 router.get("/me", authMiddleware, async (req, res) => {
@@ -184,6 +204,30 @@ router.get("/me", authMiddleware, async (req, res) => {
         res.json({ success: true, data: user });
     } catch (error) {
         res.status(500).json({ success: false, message: "Error al obtener los datos del usuario" });
+    }
+});
+
+// POST /api/auth/set-password - Establecer o cambiar la contraseña del usuario
+router.post("/set-password", authMiddleware, async (req, res) => {
+    try {
+        const {password} = req.body;
+
+        if (!password || password.length < 6) {
+            return res.status(400).json({ success: false, message: "La contraseña debe tener al menos 6 caracteres" });
+        }
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Usuario no encontrado" });
+        }
+        // Hashear la nueva contraseña
+        const passwordHash = await bcrypt.hash(password, 10);
+        user.passwordHash = passwordHash;
+
+        await user.save();
+        return res.json({ success: true, message: "Contraseña actualizada correctamente" });
+    } catch (error) {
+        console.error("SET PASSWORD ERROR =>", error);
+        return res.status(500).json({ success: false, message: "Error al actualizar la contraseña" });
     }
 });
 

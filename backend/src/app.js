@@ -1,32 +1,36 @@
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.join(__dirname, "../.env") });
+
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
-import {connectDB} from "./config/db.js";
+import { connectDB } from "./config/db.js";
+import passport from "passport";
 
-import { fileURLToPath } from "url";
-import uploadRouter from "./routes/upload.router.js";
-import path from "path";
+await import("./config/passport.js");
 
 //Swagger
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.config.js";
 
 //Routers
+import uploadRouter from "./routes/upload.router.js";
 import productsRouter from "./routes/products.router.js";
 import cartRouter from "./routes/cart.router.js";  
 import authRouter from "./routes/auth.router.js";
 import ordersRouter from "./routes/orders.router.js";
 
-dotenv.config();
+
 
 const app = express ();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 //Middlewares
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
 
 //Conexion a la base de datos
 connectDB();
@@ -47,7 +51,7 @@ app.use("/api/cart", cartRouter);
 
 //Imagenes
 app.use("/api/upload", uploadRouter);
-app.use("/uploads", express.static(path.join(__dirname, ".." + "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "..","uploads")));
 
 const PORT = process.env.PORT || 3000;
 

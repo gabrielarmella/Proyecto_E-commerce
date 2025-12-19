@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { loginRequest, registerRequest, getMeRequest } from "../api/auth.js";
+
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -7,7 +8,7 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    //cargar usuario si hay token
+    //cargar usuario si hay token (login normal o Google OAuth)
     useEffect(() => {
         const loadUser = async () => {
             try {
@@ -16,15 +17,13 @@ export const AuthProvider = ({ children }) => {
                     setLoading(false);
                     return;
                 }
-                const me = await getMeRequest();
-                //Soporta que la respuesta sea tipo:
-                //1. { success, data: user }
-                //2. {user}
-                //3. user directo
-                setUser(me.data || me.user || me);
-                setUser(res.data);
+                const res = await getMeRequest();
+                // backend -> {success, data: user}
+                const userData = res.data || res.user || res;;
+                setUser(userData);
             } catch (err) {
                 console.log(err);
+                console.error("LOAD USER ERROR =>", err);
                 localStorage.removeItem("token");
                 setUser(null);
             } finally {
@@ -42,6 +41,7 @@ export const AuthProvider = ({ children }) => {
             setUser(res.user);
             return { success: true };
         } catch (err) {
+            console.error("LOGIN ERROR =>", err);
             setError("credenciales incorrectas o errror en el servidor");
             return { success: false };
         }
@@ -50,16 +50,10 @@ export const AuthProvider = ({ children }) => {
     const register = async (name, email, password) => {
         try {
             setError(null);
-            const res = await registerRequest({ name, email, password });
-            console.log("REGISTER OK =>", res);
-            
-            // auto login despues de registrar
-            const loginRes = await login(email, password);
-            return loginRes;
+            await registerRequest({ name, email, password });
+            return await login(email, password);
         } catch (err) {
             console.error("REGISTER ERROR =>", err);
-            console.error("REGISTER ERROR DATA =>", err.response?.data);
-
             setError(
             err.response?.data?.message || "No se pudo registrar el usuario."
             );
