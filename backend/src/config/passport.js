@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import User from "../models/user.model.js";
+import userRepository from "../repositories/userRepository.js";
 
 console.log("GOOGLE_CLIENT_ID =", process.env.GOOGLE_CLIENT_ID);
 passport.use(
@@ -14,11 +14,11 @@ passport.use(
             try{
                 const email = profile.emails[0].value;
 
-                let user = await User.findOne({ email });
+                let user = await userRepository.findOne({ email });
 
                 if (!user) {
 
-                    user = await User.create({
+                    user = await userRepository.create({
                         name: profile.displayName,
                         email,
                         passwordHash: null,

@@ -2,7 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import passport from "passport";
-import User from "../models/user.model.js";
+import userRepository from "../repositories/user.repository.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 
 /**
@@ -56,7 +56,7 @@ router.post("/register", async (req, res) => {
                 .json({ success: false, message: "Faltan campos obligatorios: name, email, password" });
         }
 
-        const existing = await User.findOne({ email });
+        const existing = await userRepository.findOne({ email });
         if (existing) {
             return res
                 .status(409)
@@ -65,7 +65,7 @@ router.post("/register", async (req, res) => {
 
         const passwordHash = await bcrypt.hash(password, 10);
 
-        const newUser = await User.create({
+        const newUser = await userRepository.create({
             name,
             email,
             passwordHash,
@@ -132,7 +132,7 @@ router.post("/login", async (req, res) => {
             .json({ success: false, message: "Faltan campos obligatorios: email y password" });  
         }
 
-        const user = await User.findOne({ email });
+        const user = await userRepository.findOne({ email });
         if (!user) {
             return res.status(401).json({ success: false, message: "Credenciales inválidas" });
         }
@@ -197,7 +197,7 @@ router.get(
 //Get /api/auth/me - Obtener datos del usuario autenticado
 router.get("/me", authMiddleware, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select("-passwordHash");
+        const user = await userRepository.findById(req.user.id).select("-passwordHash");
         if (!user) {
             return res.status(404).json({ success: false, message: "Usuario no encontrado" });
         }
@@ -215,7 +215,7 @@ router.post("/set-password", authMiddleware, async (req, res) => {
         if (!password || password.length < 6) {
             return res.status(400).json({ success: false, message: "La contraseña debe tener al menos 6 caracteres" });
         }
-        const user = await User.findById(req.user.id);
+        const user = await userRepository.findById(req.user.id);
         if (!user) {
             return res.status(404).json({ success: false, message: "Usuario no encontrado" });
         }
