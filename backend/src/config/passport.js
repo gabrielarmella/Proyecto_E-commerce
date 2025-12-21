@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import userRepository from "../repositories/userRepository.js";
+import userRepository from "../repositories/user.repository.js";
 
 console.log("GOOGLE_CLIENT_ID =", process.env.GOOGLE_CLIENT_ID);
 passport.use(

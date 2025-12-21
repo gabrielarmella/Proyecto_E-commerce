@@ -43,6 +43,7 @@ const resolveSort = (sort) => {
 const getAdminProducts = async ({ page = 1, limit = 20, search}) => {
     const pageNumber = Number(page) || 1;
     const limitNumber = Number(limit) || 20;
+    const skip = (pageNumber - 1)  * limitNumber;
     const filter = buildAdminFilter(search);
 
     const { products, total } = await productRepository.findProducts({

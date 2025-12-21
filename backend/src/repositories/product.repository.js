@@ -13,13 +13,20 @@ class ProductRepository {
     countDocuments(filter = {}){
         return productDAO.count(filter);
     }
+    async findProducts ({filter = {}, sort = {}, skip = 0, limit = 20}){
+        const [products, total] = await Promise.all([
+            productDAO.find(filter, null, {sort, skip, limit}),
+            productDAO.count(filter),
+        ]);
+        return { products, total};
+    }
     create(doc){
         return productDAO.create(doc);
     }
-    findByIdAndUpdate(id, update, options = {new:true}){
-        return productDAO.updateById(id, update, options);
+    updateById(id, updates, options = {new:true}){
+        return productDAO.updateById(id, updates, options);
     }
-    fidnByIdAndDelete(id){
+    deleteById(id){
         return productDAO.deleteById(id);
     }
 }
