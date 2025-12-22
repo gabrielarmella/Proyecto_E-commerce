@@ -1,4 +1,4 @@
-import { orderDAO } from "../daos/factory.dao.js";
+import { orderDAO } from "../dao/factory.dao.js";
 
 class OrderRepository {
     find(filter = {}, projection = null, options = {}) {
@@ -10,8 +10,8 @@ class OrderRepository {
     findById(id, projection = null, options = {}) {
         return orderDAO.findById(id, projection, options);
     }
-    create(doc) {
-        return orderDAO.create(doc);
+    create(doc, options = {}) {
+        return orderDAO.create(doc, options);
     }
     countDocuments(filter = {}) {
         return orderDAO.count(filter);

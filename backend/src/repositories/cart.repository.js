@@ -1,4 +1,4 @@
-import { cartDAO } from "../daos/factory.dao.js";
+import { cartDAO } from "../dao/factory.dao.js";
 
 class CartRepository {
     find(filter = {}, projection = null, options = {}) {
@@ -10,14 +10,30 @@ class CartRepository {
     findById(id, projection = null, options = {}) {
         return cartDAO.findById(id, projection, options);
     }
-    create(doc) {
-        return cartDAO.create(doc);
+    findByUser(userId, options = {}){
+        return cartDAO.findOne({ user:userId}, null, options);
+    }
+    create(doc, options = {}) {
+        return cartDAO.create(doc, options);
+    }
+    createForUser(userId, options = {}){
+        return cartDAO.create({user: userId, items: []}, options);
     }
     findByIdAndUpdate(id, updates, options = { new: true }) {
         return cartDAO.updateById(id, updates, options);
     }
     findByIdAndDelete(id) {
         return cartDAO.deleteById(id);
+    }
+    saveCart(cart, options = {}){
+        return cart.save(options);
+    }
+    populateCart(cart, select = "name price stock active images", session){
+        return cart.populate({
+            path: "items.product",
+            select,
+            options: session ? { session } : undefined,
+        });
     }
 }
 

@@ -1,4 +1,4 @@
-import { userDAO } from "../daos/factory.dao.js";
+import { userDAO } from "../dao/factory.dao.js";
 
 class UserRepository{
        find(filter = {}, projection = null, options = {}) {

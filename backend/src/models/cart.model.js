@@ -23,8 +23,12 @@ const cartSchema = new mongoose.Schema(
             ref: "User",
             unique: true,
             required: true,
+            index: true,
         },
-        items: [cartItemSchema],
+        items: {
+        type: [cartItemSchema],
+        default: [],
+        },
     },
     {
         timestamps: true,

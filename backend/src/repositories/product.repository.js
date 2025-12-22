@@ -1,4 +1,4 @@
-import { productDAO } from "../daos/factory.dao.js";
+import { productDAO } from "../dao/factory.dao.js";
 
 class ProductRepository {
     find(filter ={}, projection = null, options = {}){
@@ -20,14 +20,21 @@ class ProductRepository {
         ]);
         return { products, total};
     }
-    create(doc){
-        return productDAO.create(doc);
+    create(doc, options = {}){
+        return productDAO.create(doc, options);
     }
     updateById(id, updates, options = {new:true}){
         return productDAO.updateById(id, updates, options);
     }
     deleteById(id){
         return productDAO.deleteById(id);
+    }
+    decremenStock(productId, quantity, session){
+        return productDAO.findOneAndUpdate(
+            {_id: productId, stock: { $gte: quantity }, active: true },
+            { $inc: { stock: -quantity } },
+            { new: true, session}
+        );
     }
 }
 

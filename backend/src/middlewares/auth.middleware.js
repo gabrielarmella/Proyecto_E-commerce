@@ -1,32 +1,24 @@
 import jwt from 'jsonwebtoken';
+import AppError from '../utils/appError.js';
 
 export const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;
-
-    //Esperamos: Authorization: Bearer TOKEN
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res 
-        .status(401)
-        .json({success: false, message: "No autorizado. Token faltante"});
+        return next(new AppError("No autorizado. Token faltante", 401, "UNAUTHORIZED"));
     }
-
-    const token = authHeader.split(' ')[1];
+    const token = authHeader.split("")[1];
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-        //guardamos info del usuario en req.user
         req.user = decoded;
         next();
     } catch (error) {
-        return res.status(401).json({success: false, message: "Token inválido o expirado"});
+        return next(new AppError("Token invalido o expirado", 401, "UNATHORIZED"));
     }
 };
 
 export const adminOnly = (req, res, next) => {
     if (!req.user || req.user.role !== 'admin') {
-        return res 
-        .status(403)
-        .json({success: false, message: "Acceso denegado. Solo administradores"});
+        return next( new AppError("Acceso denegado. Solo administradores", 403, "FORBIDDEN"));
     }
-    next();
+    return next();
 };

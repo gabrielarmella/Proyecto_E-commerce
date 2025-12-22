@@ -13,11 +13,17 @@ class MongoDAO {
     findById(id, projection = null, options = {}) {
         return this.model.findById(id, projection, options);
     }
-    create(doc) {
-        return this.model.create(doc);
+    create(doc, options = {}) {
+        return this.model.create(doc, options);
     }
     updateById(id, updates, options = { new: true }) {
         return this.model.findByIdAndUpdate(id, updates, options);
+    }
+    updateOne(filter, updates, options = {}){
+        return this.model.updateOne(filter, updates, options);
+    }
+    findByIdAndUpdate(filter, updates, options = { new:true }){
+        return this.model.findOneAndUpdate(filter, updates, options);
     }
     deleteById(id) {
         return this.model.findByIdAndDelete(id);

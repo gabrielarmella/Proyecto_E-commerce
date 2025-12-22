@@ -1,22 +1,47 @@
 import { Router } from 'express';
-import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { body } from "express-validator";
 import cartController from '../controllers/cart.controller.js';
+import { authMiddleware } from '../middlewares/auth.middleware.js';
+import { validateObjectId } from "../middlewares/objectId.middleware.js";
+import { validateRequest } from "../middlewares/validation.middleware.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = Router();
 
-//Get /api/cart - Obtener el carrito del usuario 
-router.get('/', authMiddleware, cartController.getCart);
+router.get('/', authMiddleware, asyncHandler(cartController.getCart));
 
-//POST /api/cart/items - Agregar un producto al carrito
-router.post('/add', authMiddleware, cartController.addItem);
+router.post(
+    "/items",
+    authMiddleware,
+    [
+        body("productId").notEmpty().withMessage("productId es requerido").isMongoId(),
+        body("quantity")
+            .optional()
+            .isInt({ gt: 0 })
+            .withMessage("quantity debe ser mayor a 0"),
+    ],
+    validateRequest,
+    asyncHandler(cartController.addItem)
+);
 
-//PUT /api/cart/item/ - Actualizar la cantidad de un producto en el carrito
-router.put('/item/:productId', authMiddleware, cartController.updateItemQuantity);
+router.put(
+    "/items/:productId",
+    authMiddleware,
+    validateObjectId("productId"),
+    [body("quantity").isInt({ gt: 0 }).withMessage("quantity debe ser mayor a 0")],
+    validateRequest,
+    asyncHandler(cartController.updateItemQuantity)
+);
 
-//DELETE /api/cart/item/:productId - Eliminar un producto del carrito
-router.delete('/item/:productId', authMiddleware, cartController.removeItem);
+router.delete(
+    "/items/:productId",
+    authMiddleware,
+    validateObjectId("productId"),
+    [body("quantity").isInt({ gt: 0 }).withMessage("quantity debe ser mayor a 0")],
+    validateRequest,
+    asyncHandler(cartController.updateItemQuantity)
+);
 
-//POST /api/cart/clear - Vaciar el carrito del usuario
-router.post('/clear', authMiddleware, cartController.clearCart);
+router.post("/clear", authMiddleware, asyncHandler(cartController.clearCart));
 
 export default router;

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { type } from "node:os";
 
 const orderItemSchema = new mongoose.Schema(
     {
@@ -21,26 +22,31 @@ const addressSchema = new mongoose.Schema(
 );
 const orderSchema = new mongoose.Schema(
     {
-        user: {type: mongoose.Schema.Types.ObjectId, ref:"User",required: true},
-        items: [orderItemSchema],
-        total: {type: Number,required: true,min: 0},
+        user: {type: mongoose.Schema.Types.ObjectId, ref:"User", required: true},
+        items: {type: [orderItemSchema], default: []},
+        total: {type: Number, required: true, min: 0},
         status: {
             type: String,
             enum: ["pendiente", "enviado", "entregado", "cancelado"],
             default: "pendiente",
+        },
+        mediosPago: {
+            type: String,
+            enum: ["tarjeta", "mercadoPago", "transferencia"],
+            default: "mercadoPago",
+        },
+        estatusPago: {
+            type: String,
+            enum: ["pendiente", "completado", "fallido"],
+            default: "pendiente",
+        },
+        direccionEnvio: addressSchema,
+        ticket: {
+            type: String,
+            default: () => `T-${Date.now()}`,
+            index: true,
+        },
     },
-    medioPago: {
-        type: String,
-        enum: ["tarjeta", "mercadoPago", "transferencia"],
-        default: "mercadoPago",
-    },
-    estatusPago: {
-        type: String,
-        enum: ["pendiente", "completado", "fallido"],
-        default: "pendiente",
-    },
-    direccionEnvio: addressSchema,
-},
     {
         timestamps: true,
     }
