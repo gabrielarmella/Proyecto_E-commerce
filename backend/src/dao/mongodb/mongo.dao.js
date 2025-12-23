@@ -22,7 +22,7 @@ class MongoDAO {
     updateOne(filter, updates, options = {}){
         return this.model.updateOne(filter, updates, options);
     }
-    findByIdAndUpdate(filter, updates, options = { new:true }){
+    findOneAndUpdate(filter, updates, options = { new:true }){
         return this.model.findOneAndUpdate(filter, updates, options);
     }
     deleteById(id) {

@@ -1,19 +1,20 @@
-import jwt from 'jsonwebtoken';
 import AppError from '../utils/appError.js';
+import { verifyAccessToken } from '../utils/jwt.js';
 
 export const authMiddleware = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return next(new AppError("No autorizado. Token faltante", 401, "UNAUTHORIZED"));
-    }
-    const token = authHeader.split("")[1];
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
-        next();
-    } catch (error) {
-        return next(new AppError("Token invalido o expirado", 401, "UNATHORIZED"));
-    }
+  const bearer = req.headers.authorization?.startsWith("Bearer ")
+    ? req.headers.authorization.split(" ")[1]
+    : null;
+  const token = bearer || req.cookies?.accessToken; // cookie opcional
+  if (!token) return next(new AppError("No autorizado", 401, "UNAUTHORIZED"));
+
+  try {
+    const decoded = verifyAccessToken(token);
+    req.user = { id: decoded.id, role: decoded.role };
+    return next();
+  } catch (error) {
+    return next(new AppError("Token inválido o expirado", 401, "UNAUTHORIZED"));
+  }
 };
 
 export const adminOnly = (req, res, next) => {

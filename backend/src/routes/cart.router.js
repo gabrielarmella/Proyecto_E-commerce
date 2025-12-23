@@ -37,9 +37,7 @@ router.delete(
     "/items/:productId",
     authMiddleware,
     validateObjectId("productId"),
-    [body("quantity").isInt({ gt: 0 }).withMessage("quantity debe ser mayor a 0")],
-    validateRequest,
-    asyncHandler(cartController.updateItemQuantity)
+    asyncHandler(cartController.removeItem)
 );
 
 router.post("/clear", authMiddleware, asyncHandler(cartController.clearCart));

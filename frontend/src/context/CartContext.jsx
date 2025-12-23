@@ -1,116 +1,66 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import {
-  addToCart,
   getCart,
+  addToCart,
   updateCartItem,
   removeCartItem,
   clearCart as clearCartApi,
-} from "../api/cart.js";
+} from "../api/cart.api.js";
 import { useAuth } from "./AuthContext.jsx";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const { user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchCart = async () => {
-    if (!user) {
+  const syncCart = useCallback(async () => {
+    if (!isAuthenticated) {
       setCart(null);
-      setError(null);
-      setLoading(false);
       return;
     }
-
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      const res = await getCart();
-      setCart(res.data);
+      const data = await getCart();
+      setCart(data);
     } catch (err) {
-      setError("No se pudo cargar el carrito.");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAuthenticated]);
 
   useEffect(() => {
-    fetchCart();
-  }, [user]);
+    syncCart();
+  }, [syncCart]);
 
-  const addItem = async (productId, quantity = 1) => {
-    if (!user) return { success: false, needsAuth: true };
-
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await addToCart(productId, quantity);
-      setCart(res.data);
-      return { success: true };
-    } catch (err) {
-      const message = err.response?.data?.message || "No se pudo agregar al carrito.";
-      setError(message);
-      return { success: false, message };
-    } finally {
-      setLoading(false);
-    }
+  const add  = async (payload) => {
+    const data = await addToCart(payload);
+    setCart(data);
   };
 
-  const updateItemQuantity = async (productId, quantity) => {
-    if (!user) return { success: false, needsAuth: true };
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await updateCartItem(productId, quantity);
-      setCart(res.data);
-      return { success: true };
-    } catch (err) {
-      const message = err.response?.data?.message || "No se pudo actualizar el carrito.";
-      setError(message);
-      return { success: false, message };
-    } finally {
-      setLoading(false);
-    }
+  const update = async ({ productId, quantity }) => {
+    const data = await updateCartItem({ productId, quantity });
+    setCart(data);
   };
 
-  const removeItem = async (productId) => {
-    if (!user) return { success: false, needsAuth: true };
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await removeCartItem(productId);
-      setCart(res.data);
-      return { success: true };
-    } catch (err) {
-      const message = err.response?.data?.message || "No se pudo eliminar el producto.";
-      setError(message);
-      return { success: false, message };
-    } finally {
-      setLoading(false);
-    }
+  const remove = async (productId) => {
+    const data = await removeCartItem(productId);
+    setCart(data);
   };
 
-  const clearCartItems = async () => {
-    if (!user) return { success: false, needsAuth: true };
-    try {
-      setLoading(true);
-      setError(null);
-      await clearCartApi();
-      setCart({ ...cart, items: [] });
-      return { success: true };
-    } catch (err) {
-      const message = err.response?.data?.message || "No se pudo vaciar el carrito.";
-      setError(message);
-      return { success: false, message };
-    } finally {
-      setLoading(false);
-    }
+  const clear = async () => {
+    const data = await clearCartApi();
+    setCart(data);
   };
-
   const items = cart?.items || [];
-  const itemCount = items.reduce((acc, item) => acc + item.quantity, 0);
+  const itemCount = items.reduce((acc, it) => acc + (it.quantity || 0), 0);
+  const subtotal =
+    cart?.totals?.amount ??
+    items.reduce((acc, it) => acc + (it.price || it.product?.price || 0) * it.quantity, 0);
 
   return (
     <CartContext.Provider
@@ -118,13 +68,14 @@ export const CartProvider = ({ children }) => {
         cart,
         items,
         itemCount,
+        subtotal,
         loading,
         error,
-        fetchCart,
-        addItem,
-        updateItemQuantity,
-        removeItem,
-        clearCart: clearCartItems,
+        syncCart,
+        addToCart: add,
+        updateQty: update,
+        removeItem: remove,
+        clearCart: clear,
       }}
     >
       {children}

@@ -29,7 +29,7 @@ class ProductRepository {
     deleteById(id){
         return productDAO.deleteById(id);
     }
-    decremenStock(productId, quantity, session){
+    decrementStock(productId, quantity, session){
         return productDAO.findOneAndUpdate(
             {_id: productId, stock: { $gte: quantity }, active: true },
             { $inc: { stock: -quantity } },

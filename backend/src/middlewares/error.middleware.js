@@ -1,7 +1,7 @@
 import AppError from "../utils/appError.js";
 
 export const notFoundHandler = ( req, res, next) => {
-    next(new AppError(`Ruta ${req.originlUrl} no encontrada`, 404, "NOT_FOUND"));
+    next(new AppError(`Ruta ${req.originalUrl} no encontrada`, 404, "NOT_FOUND"));
 }
 
 export const errorHandler = (err, req, res, next) => {

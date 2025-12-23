@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import apiClient from "../api/client.js";
+import api from "../api/client.js";
 import { uploadProductImage } from "../api/admin.js";
 import { updateProduct } from "../api/adminProducts.js";
 
@@ -40,7 +40,7 @@ export default function AdminEditProductPage() {
       setLoading(true);
       setError("");
       try {
-        const res = await apiClient.get(`/api/products/${id}`);
+        const res = await api.get(`/api/products/${id}`);
         const p = res.data?.data ?? res.data;
 
         setForm({

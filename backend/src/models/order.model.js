@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { type } from "node:os";
 
 const orderItemSchema = new mongoose.Schema(
     {

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import apiClient from "../api/client";
+import api from "../api/client.js";
 import { useNavigate } from "react-router-dom";
 
 export default function SetPasswordPage() {
@@ -25,7 +25,7 @@ export default function SetPasswordPage() {
     }
 
     try {
-      await apiClient.post("/api/auth/set-password", { password });
+      await api.post("/api/auth/set-password", { password });
       setSuccess("Contraseña configurada correctamente");
       setTimeout(() => navigate("/"), 1500);
     } catch (err) {
