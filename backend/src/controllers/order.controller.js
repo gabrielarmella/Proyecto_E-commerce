@@ -19,8 +19,10 @@ const getAllOrders = async (req, res) => {
     const result = await orderService.getAllOrders({ page, limit, status});
     return res.json({
         success: true,
-        data: result.orders,
-        pagination: result.pagination,
+        data: {
+            orders: result.orders,
+            pagination: result.pagination,
+        },
     });
 };
 

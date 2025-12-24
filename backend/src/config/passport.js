@@ -1,8 +1,6 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import userRepository from "../repositories/user.repository.js";
-
-console.log("GOOGLE_CLIENT_ID =", process.env.GOOGLE_CLIENT_ID);
 passport.use(
     new GoogleStrategy(
         {
@@ -12,7 +10,10 @@ passport.use(
         },
         async (accessToken, refreshToken, profile, done) => {
             try{
-                const email = profile.emails[0].value;
+                const email = profile.emails?.[0]?.value;
+                if (!email) {
+                    return done(new Error("Google profile missing email"), null);
+                }
 
                 let user = await userRepository.findOne({ email });
 
@@ -23,14 +24,14 @@ passport.use(
                         email,
                         passwordHash: null,
                         googleId: profile.id,
-                        picture: profile.photos[0].value || "",
+                        picture: profile.photos?.[0]?.value || "",
                         role: "user",
                         authProvider: "google",
                     });
                 }else{
                     if (!user.googleId) {
                         user.googleId = profile.id;
-                        user.picture = profile.photos[0].value || user.picture;
+                        user.picture = profile.photos?.[0]?.value || user.picture;
                         user.authProvider = "google";
                         await user.save();
                     } 

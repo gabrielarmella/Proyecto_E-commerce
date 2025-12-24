@@ -13,7 +13,7 @@ const getOrCreateCart = async (userId) => {
 };
 
 const getCart = async (userId) => {
-    const cart = getOrCreateCart(userId);
+    const cart = await getOrCreateCart(userId);
     return cartToDTO(cart);
 };
 

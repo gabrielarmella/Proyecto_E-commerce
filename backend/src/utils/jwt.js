@@ -18,7 +18,7 @@ export const verifyAccessToken = (token) =>
 
 export const cookieOptions = {
   httpOnly: true,
-  secure: false, // en local, si usas http, pon false temporalmente
+  secure: false, 
   sameSite: "strict",
   path: "/",
 };

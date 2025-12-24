@@ -25,6 +25,9 @@ class CartRepository {
     findByIdAndDelete(id) {
         return cartDAO.deleteById(id);
     }
+    updateOne(filter, updates, options = {}){
+        return cartDAO.updateOne(filter, updates, options);
+    }
     saveCart(cart, options = {}){
         return cart.save(options);
     }

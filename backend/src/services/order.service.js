@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import AppError from "../utils/appError.js";
 import cartRepository from "../repositories/cart.repository.js";
 import productRepository from "../repositories/product.repository.js";
@@ -6,51 +7,86 @@ import { orderToDTO } from "../dto/order.dto.js";
 
 
 const checkoutFromCart = async ({ userId, mediosPago, direccionEnvio }) => {
-  let cart = await cartRepository.findByUser(userId);
-  if (!cart || cart.items.length === 0) {
-    throw new AppError("El carrito esta vacio", 400, "CART_EMPTY");
+  const session = await mongoose.startSession();
+
+  try {
+    const orderDTO = await session.withTransaction(async () => {
+      const cart = await cartRepository.findByUser(userId, { session });
+      if (!cart || cart.items.length === 0) {
+        throw new AppError("El carrito esta vacio", 400, "CART_EMPTY");
+      }
+
+      await cartRepository.populateCart(cart, "name price stock active", session);
+
+      const items = [];
+      let total = 0;
+
+      for (const cartItem of cart.items) {
+        const qty = Number(cartItem.quantity);
+        const product = cartItem.product;
+        const productId = product?._id ?? cartItem.product;
+
+        if (!Number.isInteger(qty) || qty <= 0) {
+          throw new AppError("Cantidad invalida en el carrito", 400, "INVALID_QUANTITY", {
+            productId,
+          });
+        }
+        if (!product) {
+          throw new AppError("Producto no encontrado", 404, "PRODUCT_NOT_FOUND", { productId });
+        }
+        if (product.active === false) {
+          throw new AppError("Producto no disponible", 400, "PRODUCT_INACTIVE", { productId });
+        }
+
+        const updated = await productRepository.decrementStock(product._id, qty, session);
+        if (!updated) {
+          throw new AppError(`Stock insuficiente para ${product.name}`, 409, "INSUFFICIENT_STOCK", {
+            productId: product._id,
+          });
+        }
+
+        const price = Number(product.price);
+        total += price * qty;
+        items.push({ product: product._id, quantity: qty, price });
+      }
+
+      const cleared = await cartRepository.updateOne(
+        { _id: cart._id, "items.0": { $exists: true } },
+        { $set: { items: [] } },
+        { session }
+      );
+
+      const modifiedCount = cleared?.modifiedCount ?? cleared?.nModified ?? 0;
+      if (modifiedCount === 0) {
+        throw new AppError("El carrito ya fue procesado", 409, "CART_ALREADY_PROCESSED");
+      }
+
+      const orderDoc = await orderRepository.create(
+        {
+          user: userId,
+          items,
+          total,
+          status: "pendiente",
+          mediosPago: mediosPago || "mercadoPago",
+          estatusPago: "pendiente",
+          direccionEnvio: direccionEnvio || null,
+        },
+        { session }
+      );
+
+      const order = await orderRepository
+        .findById(orderDoc._id, null, { session })
+        .populate("items.product", "name price images")
+        .populate("user", "name email")
+        .lean();
+
+      return orderToDTO(order);
+    });
+
+    return orderDTO;
+  } finally {
+    session.endSession();
   }
-
-  await cartRepository.populateCart(cart, "name price stock active");
-
-  const items = [];
-  let total = 0;
-
-  for (const cartItem of cart.items) {
-    const product = cartItem.product;
-    if (!product || product.active === false)
-      throw new AppError("Producto no disponible", 400, "PRODUCT_INACTIVE", { productId: product?._id });
-    if (product.stock < cartItem.quantity) 
-      throw new AppError(`Stock insuficiente para ${product.name}`, 409, "INSUFFICIENT_STOCK",{ productId: product._id, available: product.stock });
-    const updated = await productRepository.decrementStock( product._id, cartItem.quantity);
-    if (!updated)
-      throw new AppError( `Stock insuficiente para ${product.name}`, 409, "INSUFFICIENT_STOCK", { productId: product._id } );
-
-    const price = Number(product.price);
-    total += price * cartItem.quantity;
-    items.push({ product: product._id, quantity: cartItem.quantity, price });
-  }
-
-  const orderDoc = await orderRepository.create({
-    user: userId,
-    items,
-    total,
-    status: "pendiente",
-    mediosPago: mediosPago || "mercadoPago",
-    estatusPago: "pendiente",
-    direccionEnvio: direccionEnvio || null,
-  });
-
-  cart.items = [];
-  await cartRepository.saveCart(cart);
-
-  const order = await orderRepository
-    .findById(orderDoc._id)
-    .populate("items.product", "name price images")
-    .populate("user", "name email")
-    .lean();
-
-  return orderToDTO(order);
 };
 
 const getMyOrders = async (userId) => {

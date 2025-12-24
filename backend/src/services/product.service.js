@@ -1,3 +1,4 @@
+import AppError from "../utils/appError.js";
 import productRepository from "../repositories/product.repository.js";
 
 const buildAdminFilter = (search) => {
@@ -110,9 +111,7 @@ const createProduct = async (payload) => {
         tags = [],
     } = payload;
     if (!name || price == null){
-        const error = new Error("Nombre y precio son obligatorios: name, price");
-        error.status = 400;
-        throw error;
+        throw new AppError("Nombre y precio son obligatorios: name, price", 400, "VALIDATION_ERROR");
     }
     return productRepository.create({
         name,

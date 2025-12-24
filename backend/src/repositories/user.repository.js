@@ -1,7 +1,7 @@
 import { userDAO } from "../dao/factory.dao.js";
 
 class UserRepository{
-       find(filter = {}, projection = null, options = {}) {
+    find(filter = {}, projection = null, options = {}) {
         return userDAO.find(filter, projection, options);
     }
 

@@ -1,15 +1,11 @@
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import { doubleCsrf } from "csrf-csrf";
-import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import express from "express";
 import cors from "cors";
 import passport from "passport";
 import { connectDB } from "./config/db.js";
-import swaggerUi from "swagger-ui-express";
-import swaggerSpec from "./config/swagger.config.js";
 import uploadRouter from "./routes/upload.router.js";
 import productsRouter from "./routes/products.router.js";
 import cartRouter from "./routes/cart.router.js";
@@ -33,32 +29,12 @@ app.use(
     credentials: false, 
   })
 );
-//app.use(cookieParser());
 app.use(express.json());
-
 // DB y passport
 connectDB();
 app.use(passport.initialize());
-
-// CSRF (si lo mantienes)
-/*const { doubleCsrfProtection, generateToken: generateCsrfToken } = doubleCsrf({
-  getSecret: () => process.env.CSRF_SECRET || "dev-secret-change",
-  cookieName: "XSRF-TOKEN",
-  cookieOptions: { httpOnly: true, sameSite: "strict", secure: true },
-  getTokenFromRequest: (req) => req.headers["x-csrf-token"],
-});
-app.use((req, res, next) => {
-  res.cookie("XSRF-TOKEN", generateCsrfToken(req, res), {
-    sameSite: "strict",
-    secure: true,
-  });
-  next();
-});
-app.use(doubleCsrfProtection);
-*/
 // Rutas
 app.get("/", (req, res) => res.json({ success: true, message: "API REST funcionando" }));
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/products", productsRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/orders", ordersRouter);

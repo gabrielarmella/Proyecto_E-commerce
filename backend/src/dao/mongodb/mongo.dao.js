@@ -13,9 +13,10 @@ class MongoDAO {
     findById(id, projection = null, options = {}) {
         return this.model.findById(id, projection, options);
     }
-    create(doc, options = {}) {
-        return this.model.create(doc, options);
-    }
+     create(doc, options = {}) {
+        const instance = new this.model(doc);
+        return instance.save(options);
+    } 
     updateById(id, updates, options = { new: true }) {
         return this.model.findByIdAndUpdate(id, updates, options);
     }

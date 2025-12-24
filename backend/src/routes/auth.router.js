@@ -1,8 +1,10 @@
 import { Router } from "express";
 import { body } from "express-validator";
+import passport from "passport";
 import { validateRequest } from "../middlewares/validation.middleware.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import AppError from "../utils/appError.js";
 import authController from "../controllers/auth.controller.js";
 
 const router = Router();
@@ -10,8 +12,8 @@ const router = Router();
 router.post(
   "/register",
   [
-    body("name").notEmpty(),
-    body("email").isEmail(),
+    body("name").trim().notEmpty(),
+    body("email").isEmail().normalizeEmail(),
     body("password").isLength({ min: 6 }),
   ],
   validateRequest,
@@ -27,6 +29,23 @@ router.post(
   validateRequest,
   asyncHandler(authController.login)
 );
+
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false,
+  })
+);
+
+router.get("/google/callback", (req, res, next) => {
+  passport.authenticate("google", { session: false }, (err, user) => {
+    if (err) return next(err);
+    if (!user) return next(new AppError("Google auth failed", 401, "GOOGLE_AUTH_FAILED"));
+    req.user = user;
+    return asyncHandler(authController.googleCallback)(req, res, next);
+  })(req, res, next);
+});
 
 router.post("/refresh", asyncHandler(authController.refresh));
 router.post("/logout", authMiddleware, asyncHandler(authController.logout));
