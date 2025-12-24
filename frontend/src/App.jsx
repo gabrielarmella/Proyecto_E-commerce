@@ -11,6 +11,7 @@ import LoginPage from "./pages/LoginPage.jsx";
 import RegisterPage from "./pages/RegisterPage.jsx";
 import OrdersPage from "./pages/OrdersPage.jsx";
 import AdminProductsPage from "./pages/AdminProductsPage.jsx";
+import OAuthSuccess from "./pages/OAuthSuccess.jsx";
 
 export default function App() {
   return (
@@ -19,8 +20,10 @@ export default function App() {
       <main className="max-w-6xl mx-auto px-4 py-6">
         <Routes>
           <Route path="/" element={<ProductsPage />} />
+          <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetailPage />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/oauth-success" element={<OAuthSuccess />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/checkout" element={<CheckoutPage />} />
@@ -40,4 +43,3 @@ export default function App() {
     </div>
   );
 }
-
