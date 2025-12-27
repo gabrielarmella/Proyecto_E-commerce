@@ -33,16 +33,28 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  limits: { fileSize: 7 * 1920 * 1080 }, // 5 MB
 });
 
 // POST /api/upload/products
-router.post("/products", authMiddleware, adminOnly, upload.single("image"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success:false, message: "No se subió ninguna imagen" });
+router.post("/products", authMiddleware, adminOnly, upload.fields([{ name:"image", maxCount: 1}, { name:"images", maxCount:  10}]), (req, res) => {
+  const uploaded = [
+    ... (req.files?.image || []),
+    ... (req.files?.images || []),
+  ];
+  if (!uploaded.length){
+    return res.status(400).json({ success: false, message: "No se subió ninguna imagen" });
   }
-  const imageUrl = `/uploads/products/${req.file.filename}`;
-  res.status(201).json({ success: true, url:imageUrl, fileName: req.file.filename, });
+  const images = uploaded.map((file) => ({
+    url: `/uploads/products/${file.filename}`,
+    fileName: file.filename,
+  }));
+  res.status(201).json({
+    success: true,
+    images,
+    url: images[0].url,
+    fileName: images[0].fileName,
+  });
 });
 
 router.use((err, req, res, next) => {

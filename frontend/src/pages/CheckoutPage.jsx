@@ -62,7 +62,7 @@ export default function CheckoutPage() {
     <div className="checkout-page">
       <div className="checkout-card">
         <div className="checkout-header text-center">
-          <h1>Resumen de su compra</h1>
+          <h1>Ya casi es tuyo</h1>
           <p>Total: ${total}</p>
         </div>
 

@@ -1,6 +1,16 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { API_BASE_URL } from "../api/client.api.js";
 import { useCart } from "../context/CartContext.jsx";
+
+const resolveImageUrl = (value = "") => {
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value)) return value;
+  if (value.startsWith("/uploads")) return `${API_BASE_URL}${value}`;
+  if (value.startsWith("uploads/")) return `${API_BASE_URL}/${value}`;
+  return value;
+};
+
 
 export default function CartPage() {
   const { items, itemCount, total, loading, error, updateQty, removeItem, clearCart } = useCart();
@@ -18,7 +28,7 @@ export default function CartPage() {
 
   if (loading) return <div>Cargando carrito...</div>;
 
-  return (
+ return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Cart</h1>
@@ -38,17 +48,22 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4">
           <div className="space-y-3">
             {items.map((item) => {
-              const imageUrl =
+              const rawImage =
                 item.image || item.Image || (Array.isArray(item.images) ? item.images[0] : "");
+              const imageUrl = resolveImageUrl(rawImage);
               const lineTotal = Number(item.price || 0) * Number(item.quantity || 0);
 
               return (
                 <div key={item.productId} className="bg-white border rounded p-4 flex gap-4">
-                  {imageUrl ? (
-                    <img src={imageUrl} alt={item.name} className="w-20 h-20 object-cover rounded" />
-                  ) : (
-                    <div className="w-20 h-20 bg-gray-200 rounded" />
-                  )}
+                  <div className="w-20 h-20 bg-gray-50 rounded flex items-center justify-center overflow-hidden">
+                    {imageUrl ? (
+                      <img
+                        src={imageUrl}
+                        alt={item.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    ) : null}
+                  </div>
 
                   <div className="flex-1">
                     <h3 className="font-semibold">{item.name}</h3>
